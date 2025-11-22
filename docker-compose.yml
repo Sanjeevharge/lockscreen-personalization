@@ -4,11 +4,20 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:80"
+      - "3000:3000"
     depends_on:
-      - backend
+      - api-gateway
 
-  backend:
+  api-gateway:
+    build: ./backend/api-gateway
+    ports:
+      - "8001:8000"
+    depends_on:
+      - content-service
+      - rec-service
+      - event-service
+
+  content-service:
     build: ./backend
     ports:
       - "8000:8000"
@@ -16,6 +25,24 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/lockscreen
       - NEWS_API_KEY=${NEWS_API_KEY}
       - UNSPLASH_KEY=${UNSPLASH_KEY}
+    depends_on:
+      - db
+
+  rec-service:
+    build: ./backend/rec-service
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lockscreen
+    depends_on:
+      - db
+
+  event-service:
+    build: ./backend/event-service
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lockscreen
     depends_on:
       - db
 
