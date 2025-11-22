@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lockscreen
+      - NEWS_API_KEY=${NEWS_API_KEY}
+      - UNSPLASH_KEY=${UNSPLASH_KEY}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lockscreen
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
