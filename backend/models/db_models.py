@@ -1,9 +1,8 @@
 import datetime
 
+from db import Base  # <-- import Base from db.py, do NOT redefine
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-
-from ..db import Base  # <-- import Base from db.py, do NOT redefine
 
 
 class Content(Base):

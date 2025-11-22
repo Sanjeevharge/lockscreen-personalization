@@ -3,9 +3,8 @@ import os
 
 import requests
 from dotenv import load_dotenv
+from models.db_models import Content
 from sqlalchemy.orm import Session
-
-from ..models.db_models import Content
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
