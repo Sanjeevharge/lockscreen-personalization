@@ -1,7 +1,10 @@
 import datetime
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-from backend.db import Base  # <-- import Base from db.py, do NOT redefine
+
+from ..db import Base  # <-- import Base from db.py, do NOT redefine
+
 
 class Content(Base):
     __tablename__ = "content"
@@ -14,11 +17,13 @@ class Content(Base):
     image = Column(String, nullable=True)
     why = Column(Text, nullable=True)
 
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True)
+
 
 class Event(Base):
     __tablename__ = "events"

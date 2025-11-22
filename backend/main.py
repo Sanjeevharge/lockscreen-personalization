@@ -139,7 +139,7 @@ def get_recommendations(limit: int = 10, db: Session = Depends(get_db)):
 @app.get("/recommendations/{user_id}")
 def get_ranked_recommendations(user_id: int, limit: int = 10, epsilon: float = 0.2, db: Session = Depends(get_db)):
     liked_categories = (
-        db.query(.Content.category)
+        db.query(Content.category)
         .join(Event, Event.content_id == Content.id)
         .filter(Event.user_id == user_id, Event.event_type == "like")
         .all()

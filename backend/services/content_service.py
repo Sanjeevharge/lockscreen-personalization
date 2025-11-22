@@ -1,11 +1,11 @@
 # backend/services/content_service.py
 import os
-import requests
-from sqlalchemy.orm import Session
-from backend.models.db_models import Content
 
+import requests
 from dotenv import load_dotenv
-import os
+from sqlalchemy.orm import Session
+
+from ..models.db_models import Content
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -13,6 +13,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 UNSPLASH_KEY = os.getenv("UNSPLASH_KEY")
+
 
 def fetch_news():
     """
@@ -33,13 +34,15 @@ def fetch_news():
         image = a.get("urlToImage")
         # placeholder "why" if none
         why = a.get("description") or "Recommended for you"
-        results.append({
-            "title": title,
-            "category": "General",
-            "publisher": publisher,
-            "image": image,
-            "why": why,
-        })
+        results.append(
+            {
+                "title": title,
+                "category": "General",
+                "publisher": publisher,
+                "image": image,
+                "why": why,
+            }
+        )
     return results
 
 
