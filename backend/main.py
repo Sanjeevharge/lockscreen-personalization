@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 import random
 from datetime import datetime, timedelta
-from backend.models import db_models  # ensures Content & Event are registered
+from models import db_models  # ensures Content & Event are registered
 
 # ✅ New imports
 import os
@@ -13,10 +13,10 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-from backend.db import SessionLocal, init_db, Base, engine
-from backend.models.db_models import Content, Event
-from backend.services.content_service import fetch_news, save_content
-from backend.services.event_service import log_event
+from db import SessionLocal, init_db, Base, engine
+from models.db_models import Content, Event
+from services.content_service import fetch_news, save_content
+from services.event_service import log_event
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -38,7 +38,7 @@ app.add_middleware(
 
 
 # ✅ Then mount static folder
-app.mount("/static", StaticFiles(directory="backend/static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # Dependency for DB session
@@ -52,7 +52,7 @@ def get_db():
 @app.on_event("startup")
 def startup_event():
     init_db()
-    from backend.models import db_models  # <-- ensure models are registered
+    from models import db_models  # <-- ensure models are registered
     Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
@@ -104,7 +104,7 @@ def log_user_event(event: EventIn, db: Session = Depends(get_db)):
     e = log_event(db, event.user_id, event.content_id, event.event_type)
     return {"event": e.id, "status": "logged"}
 
-    
+
 
 
 # --------------------------
@@ -139,7 +139,7 @@ def get_recommendations(limit: int = 10, db: Session = Depends(get_db)):
 @app.get("/recommendations/{user_id}")
 def get_ranked_recommendations(user_id: int, limit: int = 10, epsilon: float = 0.2, db: Session = Depends(get_db)):
     liked_categories = (
-        db.query(Content.category)
+        db.query(.Content.category)
         .join(Event, Event.content_id == Content.id)
         .filter(Event.user_id == user_id, Event.event_type == "like")
         .all()
