@@ -1,24 +1,22 @@
-from fastapi import FastAPI, Depends
-from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
-import random
-from datetime import datetime, timedelta
-from models import db_models  # ensures Content & Event are registered
-
 # ✅ New imports
 import os
+import random
+from datetime import datetime, timedelta
+
 from dotenv import load_dotenv
-import os
+from fastapi import Depends, FastAPI
+from fastapi.staticfiles import StaticFiles
+from models import db_models  # ensures Content & Event are registered
+from sqlalchemy.orm import Session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-from db import SessionLocal, init_db, Base, engine
-from models.db_models import Content, Event
+from db import Base, SessionLocal, engine, init_db
+from fastapi.middleware.cors import CORSMiddleware
+from models.db_models import Content, Event, User
 from services.content_service import fetch_news, save_content
 from services.event_service import log_event
-
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Lockscreen Personalization API")
 
@@ -49,14 +47,24 @@ def get_db():
     finally:
         db.close()
 
+
 @app.on_event("startup")
 def startup_event():
     init_db()
     from models import db_models  # <-- ensure models are registered
+
     Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
     try:
+        # Check if user 1 exists, create if not
+        user = db.query(User).filter(User.id == 1).first()
+        if not user:
+            print("👤 User 1 not found, creating...")
+            db.add(User(id=1, name="Default User"))
+            db.commit()
+            print("✅ Default user created.")
+
         if db.query(Content).count() == 0:
             print("⚡ No content found in DB, fetching fresh news...")
             articles = fetch_news()
@@ -75,9 +83,11 @@ def root():
         "unsplash_key_loaded": os.getenv("UNSPLASH_KEY") is not None,
     }
 
+
 # --------------------------
 # 🔹 Existing Endpoints
 # --------------------------
+
 
 @app.get("/feed")
 def get_feed(db: Session = Depends(get_db)):
@@ -94,10 +104,12 @@ def update_content(db: Session = Depends(get_db)):
 
 from pydantic import BaseModel
 
+
 class EventIn(BaseModel):
     user_id: int
     content_id: int
     event_type: str
+
 
 @app.post("/event")
 def log_user_event(event: EventIn, db: Session = Depends(get_db)):
@@ -105,11 +117,10 @@ def log_user_event(event: EventIn, db: Session = Depends(get_db)):
     return {"event": e.id, "status": "logged"}
 
 
-
-
 # --------------------------
 # 🔹 Phase 3: Recommendations
 # --------------------------
+
 
 # Candidate Generation (Rule-based)
 @app.get("/recommendations")
@@ -137,7 +148,9 @@ def get_recommendations(limit: int = 10, db: Session = Depends(get_db)):
 
 # Ranking Baseline (epsilon-greedy)
 @app.get("/recommendations/{user_id}")
-def get_ranked_recommendations(user_id: int, limit: int = 10, epsilon: float = 0.2, db: Session = Depends(get_db)):
+def get_ranked_recommendations(
+    user_id: int, limit: int = 10, epsilon: float = 0.2, db: Session = Depends(get_db)
+):
     liked_categories = (
         db.query(Content.category)
         .join(Event, Event.content_id == Content.id)
@@ -148,10 +161,7 @@ def get_ranked_recommendations(user_id: int, limit: int = 10, epsilon: float = 0
 
     if random.random() < epsilon or not liked_categories:
         candidates = (
-            db.query(Content)
-            .order_by(Content.timestamp.desc())
-            .limit(limit)
-            .all()
+            db.query(Content).order_by(Content.timestamp.desc()).limit(limit).all()
         )
     else:
         candidates = (

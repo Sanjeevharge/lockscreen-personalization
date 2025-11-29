@@ -4,18 +4,16 @@ import React, { useState, useEffect } from "react";
 import ContentCard from "./ContentCard";
 import RecommendationExplanation from "./RecommendationExplanation";
 
-const API_URL = "http://localhost:8001";
+const API_URL = "http://localhost:8000";
 
 const LockScreen = () => {
   const [card, setCard] = useState(null);
 
   const fetchNextCard = async () => {
     try {
-      const response = await fetch(
-        `${API_URL}/recommendation/next?user_id=U123`,
-      );
+      const response = await fetch(`${API_URL}/recommendations/1`);
       const data = await response.json();
-      setCard(data);
+      setCard(data[0]);
     } catch (error) {
       console.error("Error fetching next card:", error);
     }
@@ -23,14 +21,14 @@ const LockScreen = () => {
 
   const sendInteraction = async (eventType) => {
     try {
-      await fetch(`${API_URL}/events/interaction`, {
+      await fetch(`${API_URL}/event`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: "U123",
-          content_id: card.content_id,
+          user_id: 1,
+          content_id: card.id,
           event_type: eventType,
         }),
       });
@@ -57,7 +55,11 @@ const LockScreen = () => {
   };
 
   if (!card) {
-    return <div>Loading...</div>;
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-800 text-white">
+        Loading recommendations...
+      </div>
+    );
   }
 
   return (
