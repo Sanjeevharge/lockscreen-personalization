@@ -1,6 +1,7 @@
 import os
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Read DATABASE_URL from environment; fall back to sqlite file for local dev
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./content.db")
@@ -17,6 +18,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Define Base once, import everywhere
 Base = declarative_base()
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -24,8 +26,9 @@ def get_db():
     finally:
         db.close()
 
+
 def init_db():
     # Import models so that Base.metadata is aware of them
-    from backend.models import db_models
-    Base.metadata.create_all(bind=engine)
+    from models import db_models
 
+    Base.metadata.create_all(bind=engine)
